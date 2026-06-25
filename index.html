@@ -1,8 +1,11 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
   <title>Display</title>
   <style>
     html, body {
@@ -12,7 +15,6 @@
       background: #000;
       overflow: hidden;
     }
-    /* Scales the video to cover the whole screen, cropping edges if needed */
     .video-wrap {
       position: fixed;
       top: 0; left: 0;
@@ -23,12 +25,37 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      /* 177.78vh keeps 16:9 ratio when scaling to viewport height */
       width: 100vw;
       height: 56.25vw;
       min-height: 100vh;
       min-width: 177.78vh;
     }
+    /* Fullscreen button — overlays the video, auto-hides in fullscreen */
+    #fsBtn {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      padding: 22px 40px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(0,0,0,0.55);
+      border: 2px solid rgba(255,255,255,0.85);
+      border-radius: 60px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: opacity 0.4s ease, background 0.2s ease;
+    }
+    #fsBtn:hover { background: rgba(0,0,0,0.75); }
+    /* Hide the button once we're actually in fullscreen */
+    :fullscreen #fsBtn { display: none; }
+    :-webkit-full-screen #fsBtn { display: none; }
+    body.is-fs #fsBtn { display: none; }
   </style>
 </head>
 <body>
@@ -39,5 +66,35 @@
       allow="autoplay; fullscreen"
       allowfullscreen></iframe>
   </div>
+
+  <button id="fsBtn">⛶ Tap for full screen</button>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('fsBtn');
+      var el = document.documentElement;
+
+      function enterFS() {
+        var fn = el.requestFullscreen
+              || el.webkitRequestFullscreen
+              || el.mozRequestFullScreen
+              || el.msRequestFullscreen;
+        if (fn) {
+          try { fn.call(el); } catch (e) {}
+        }
+        document.body.classList.add('is-fs');
+      }
+
+      btn.addEventListener('click', enterFS);
+
+      // Keep the button hidden whenever we're in fullscreen, show it if we exit
+      function syncBtn() {
+        var fs = document.fullscreenElement || document.webkitFullscreenElement;
+        document.body.classList.toggle('is-fs', !!fs);
+      }
+      document.addEventListener('fullscreenchange', syncBtn);
+      document.addEventListener('webkitfullscreenchange', syncBtn);
+    })();
+  </script>
 </body>
 </html>
